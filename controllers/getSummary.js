@@ -5,7 +5,7 @@ const statusCodes = require('../helpers/statusCodes.json')
 
 const getSummaryResponse = async (req, res) => {
     try {
-        let userId = req.query.userId
+        let userId = req.userId
         console.log("User : ", userId)
 
         let summary = await getSummary(userId).catch(error => {

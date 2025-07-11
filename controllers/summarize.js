@@ -5,8 +5,8 @@ const summarize = require('../logic/summarize.js')
 const summarizeResponse = async (req, res) => {
     try {
         let resource = req.body.resource
-        let userId= req.query.userId
-        let summary = await summarize(resource,userId)
+        let userId = req.userId
+        let summary = await summarize(resource, userId)
         //.catch(error => {
         //     let failure = failureResponse(statusCodes.BAD_REQUEST.status, error, statusCodes.BAD_REQUEST.statusCode)
         //    res.status(failure.statusCode).send(failure.body)
