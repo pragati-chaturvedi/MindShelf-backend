@@ -9,13 +9,9 @@ const searchReads = (userId, searchPrompt) => {
   return new Promise(async (resolve, reject) => {
     try {
       const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
       console.log(genAI);
-      console.log(model);
 
-      const promptText = searchPrompt;
-      console.log(promptText)
-
+      //function declarations
       const getSummaryTagsFunctionDeclaration = {
         name: "getSummaryWithTags",
         description: "Use this when the user asks for specific mindfiles using tags, topics, or keywords like 'AI', 'finance', 'climate' etc. Extract relevant tags and return the summaries that match them.",
@@ -60,12 +56,10 @@ const searchReads = (userId, searchPrompt) => {
         },
       };
 
-
-      const responses = await model.generateContent({
-
-        model: 'gemini-2.0-flash',
-        contents: [{ parts: [{ text: promptText }] }],
-        tools: [ // tools array is directly here
+      // Initializing the model with tools
+      const model = genAI.getGenerativeModel({
+        model: "gemini-2.0-flash",
+        tools: [
           {
             functionDeclarations: [
               getSummaryTagsFunctionDeclaration,
@@ -73,20 +67,27 @@ const searchReads = (userId, searchPrompt) => {
             ],
           },
         ]
+      });
+      console.log("Model :", model)
+      const promptText = searchPrompt;
+      console.log("Search prompt : ", promptText)
 
+
+      const responses = await model.generateContent({
+        contents: [{ parts: [{ text: promptText }] }],
       }).catch((err) => console.log(err));
 
       //console.log(response.response.candidates)
       let response = responses.response
       if (response && response.candidates && response.candidates[0] && response.candidates[0].content && response.candidates[0].content.parts && response.candidates[0].content.parts[0].functionCall) {
-        const functionCall = response.candidates[0].content.parts[0].functionCall; // Assuming one function call
+        const functionCall = response.candidates[0].content.parts[0].functionCall;
         console.log(`Function to call: ${functionCall.name}`);
         console.log(`Arguments: ${JSON.stringify(functionCall.args)}`);
-        // In a real app, you would call your actual function here:
-        let functionResponse
+
+        let functionResponse;
         if (functionCall.name === "getSummaryWithDates") {
           functionResponse = await getSummaryWithDates(
-            userId, functionCall.args.startDate, functionCall.args.startDate
+            userId, functionCall.args.startDate, functionCall.args.endDate
           );
         } else if (functionCall.name === "getSummaryWithTags") {
           functionResponse = await getSummaryWithTags(
