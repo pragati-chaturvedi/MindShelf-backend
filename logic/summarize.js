@@ -2,12 +2,12 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 require("dotenv").config();
 const dbrequest = require("../helpers/dbRequest");
 //const createSummary= require("../helpers/createSummaryFile")
-const summarize = (resource,userId) => {
+const summarize = (resource, userId) => {
   return new Promise(async (resolve, reject) => {
     try {
       console.log(resource);
       const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
       const promptText = `Use this resource link ${resource} and create a summary of it with keywords 
         as searchable tags for the topic of resource. Give response in the form of an object schema:
         {
@@ -20,24 +20,24 @@ const summarize = (resource,userId) => {
         contents: [{ parts: [{ text: promptText }] }],
       });
       const responseAPI = result.response;
-      const response= responseAPI.text()
-      const parseResponse =  response.replace(/^```json\s*/, '').slice(0,-4)
+      const response = responseAPI.text()
+      const parseResponse = response.replace(/^```json\s*/, '').slice(0, -4)
       const responseFinal = JSON.parse(parseResponse);
 
-    //  const summary = responseFinal.summary
-     // let createSummaryResponse =await  createSummary(summary)
-    //  console.log(createSummaryResponse)
-     // if(createSummaryResponse)
-    //    {
+      //  const summary = responseFinal.summary
+      // let createSummaryResponse =await  createSummary(summary)
+      //  console.log(createSummaryResponse)
+      // if(createSummaryResponse)
+      //    {
       const query = {
         userId: userId,
-        title:responseFinal.title,
+        title: responseFinal.title,
         tags: responseFinal.Tags,
         summary: responseFinal.summary,
         timestamp: new Date(),
-        link:responseFinal.link
+        link: responseFinal.link
       };
-      
+
       let insertSummary = await dbrequest(
         query,
         "summaryDetails",
@@ -49,8 +49,8 @@ const summarize = (resource,userId) => {
       } else {
         reject("Summary not uploaded");
       }
-    } 
-        
+    }
+
     catch (err) {
       reject(err);
     }
